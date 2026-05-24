@@ -90,6 +90,14 @@ class BookTable:
         self.records.remove(record)
 
         return record.to_dict()
+    def _get_next_id(self):
+        max_id = 0
+
+        for record in self.records:
+            if record.id > max_id:
+                max_id = record.id
+
+        return max_id + 1
 
     def sort(self, field, reverse=False):
         allowed_fields = ["id", "title", "author", "year"]
