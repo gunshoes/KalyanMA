@@ -90,6 +90,7 @@ class BookTable:
         self.records.remove(record)
 
         return record.to_dict()
+
     def _get_next_id(self):
         max_id = 0
 

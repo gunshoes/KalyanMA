@@ -2,7 +2,6 @@ import csv
 import json
 import os
 
-from src.db.backend.errors import RecordNotFoundError
 from src.db.backend.errors import ValidationError
 from src.db.backend.memory import BookRecord
 from src.db.backend.memory import BookTable
@@ -66,19 +65,31 @@ class JsonBookTable(BookTable):
         if "columns" not in data or "records" not in data:
             raise ValidationError("Некорректная структура JSON файла")
 
-        self.columns = data["columns"]
+        if data["columns"] != self.columns:
+            raise ValidationError("Некорректная структура JSON файла")
+
+        if not isinstance(data["records"], list):
+            raise ValidationError("Некорректная структура JSON файла")
+
         self.records = []
 
         for item in data["records"]:
-            record = BookRecord(
-                item["id"],
-                item["title"],
-                item["author"],
-                item["year"],
-            )
+            try:
+                record = BookRecord(
+                    item["id"],
+                    item["title"],
+                    item["author"],
+                    item["year"],
+                )
+            except KeyError:
+                raise ValidationError("Некорректная структура записи JSON файла")
+
             self.records.append(record)
 
         if "next_id" in data:
+            if not isinstance(data["next_id"], int) or data["next_id"] < 1:
+                raise ValidationError("Некорректное значение next_id в JSON файле")
+
             self.next_id = data["next_id"]
         else:
             self.next_id = self._get_next_id()

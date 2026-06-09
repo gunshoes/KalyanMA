@@ -1,14 +1,33 @@
 from src.db.backend.errors import DatabaseError
+from src.db.backend.file import CsvBookTable, JsonBookTable
 from src.db.backend.memory import BookTable
 
 
 class ConsoleInterface:
     def __init__(self):
-        self.table = BookTable()
+        self.table = self.choose_storage()
+
+    def choose_storage(self):
+        print("Выберите тип хранилища:")
+        print("1. In-memory")
+        print("2. JSON")
+        print("3. CSV")
+
+        choice = input("Ваш выбор: ")
+
+        if choice == "1":
+            return BookTable()
+        if choice == "2":
+            return JsonBookTable("books.json")
+        if choice == "3":
+            return CsvBookTable("books.csv")
+
+        print("Неизвестный тип хранилища, используется In-memory")
+        return BookTable()
 
     def show_menu(self):
         print()
-        print("In-memory база данных книг")
+        print("База данных книг")
         print("1. Добавить книгу")
         print("2. Показать все книги")
         print("3. Найти книги")
@@ -118,3 +137,7 @@ class ConsoleInterface:
 def start():
     interface = ConsoleInterface()
     interface.start()
+
+
+if __name__ == "__main__":
+    start()

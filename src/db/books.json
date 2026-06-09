@@ -1,0 +1,23 @@
+{
+    "columns": [
+        "id",
+        "title",
+        "author",
+        "year"
+    ],
+    "records": [
+        {
+            "id": 1,
+            "title": "Азбука",
+            "author": "Колобок",
+            "year": 1889
+        },
+        {
+            "id": 2,
+            "title": "test",
+            "author": "test",
+            "year": 2023
+        }
+    ],
+    "next_id": 3
+}
