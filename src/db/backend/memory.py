@@ -158,29 +158,3 @@ class BookTable:
             raise ValidationError("Год должен быть положительным числом")
 
         return year
-
-
-book_table = BookTable()
-
-
-def add_book(title, author, year):
-    return book_table.add(title, author, year)
-
-
-def get_books(title=None, author=None, year=None):
-    if title is None and author is None and year is None:
-        return book_table.get_all()
-
-    return book_table.filter(title, author, year)
-
-
-def update_book(book_id, title=None, author=None, year=None):
-    return book_table.update(book_id, title, author, year)
-
-
-def delete_book(book_id):
-    return book_table.delete(book_id)
-
-
-def sort_books(field, reverse=False):
-    return book_table.sort(field, reverse)

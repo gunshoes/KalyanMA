@@ -75,24 +75,29 @@ class JsonBookTable(BookTable):
 
         for item in data["records"]:
             try:
-                record = BookRecord(
-                    item["id"],
-                    item["title"],
-                    item["author"],
-                    item["year"],
-                )
+                record_id = self._validate_id(item["id"])
+                title = self._validate_text(item["title"], "Название книги")
+                author = self._validate_text(item["author"], "Автор")
+                year = self._validate_year(item["year"])
             except KeyError:
                 raise ValidationError("Некорректная структура записи JSON файла")
 
+            record = BookRecord(record_id, title, author, year)
             self.records.append(record)
 
         if "next_id" in data:
-            if not isinstance(data["next_id"], int) or data["next_id"] < 1:
-                raise ValidationError("Некорректное значение next_id в JSON файле")
-
-            self.next_id = data["next_id"]
+            self.next_id = self._validate_next_id(data["next_id"])
         else:
             self.next_id = self._get_next_id()
+
+    def _validate_next_id(self, next_id):
+        if not isinstance(next_id, int):
+            raise ValidationError("Некорректное значение next_id в JSON файле")
+
+        if next_id < 1:
+            raise ValidationError("Некорректное значение next_id в JSON файле")
+
+        return next_id
 
 
 class CsvBookTable(BookTable):
@@ -147,12 +152,12 @@ class CsvBookTable(BookTable):
                 self.records = []
 
                 for item in reader:
-                    record = BookRecord(
-                        int(item["id"]),
-                        item["title"],
-                        item["author"],
-                        int(item["year"]),
-                    )
+                    record_id = self._validate_id(item["id"])
+                    title = self._validate_text(item["title"], "Название книги")
+                    author = self._validate_text(item["author"], "Автор")
+                    year = self._validate_year(item["year"])
+
+                    record = BookRecord(record_id, title, author, year)
                     self.records.append(record)
 
                 self.next_id = self._get_next_id()
@@ -160,12 +165,5 @@ class CsvBookTable(BookTable):
             raise ValidationError("Ошибка чтения CSV файла")
         except ValueError:
             raise ValidationError("Некорректные данные в CSV файле")
-
-    def _get_next_id(self):
-        max_id = 0
-
-        for record in self.records:
-            if record.id > max_id:
-                max_id = record.id
-
-        return max_id + 1
+        except KeyError:
+            raise ValidationError("Некорректная структура CSV файла")
