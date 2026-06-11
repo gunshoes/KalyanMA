@@ -7,12 +7,11 @@ from src.db.backend.memory import BookRecord
 from src.db.backend.memory import BookTable
 
 
-class JsonBookTable(BookTable):
+class FileBookTable(BookTable):
     def __init__(self, file_path):
         super().__init__()
         self.file_path = file_path
         self.columns = ["id", "title", "author", "year"]
-        self.load()
 
     def add(self, title, author, year):
         book = super().add(title, author, year)
@@ -29,11 +28,20 @@ class JsonBookTable(BookTable):
         self.save()
         return book
 
-    def save(self):
+    def _create_folder(self):
         folder = os.path.dirname(self.file_path)
 
         if folder != "":
             os.makedirs(folder, exist_ok=True)
+
+
+class JsonBookTable(FileBookTable):
+    def __init__(self, file_path):
+        super().__init__(file_path)
+        self.load()
+
+    def save(self):
+        self._create_folder()
 
         data = {
             "columns": self.columns,
@@ -85,10 +93,15 @@ class JsonBookTable(BookTable):
             record = BookRecord(record_id, title, author, year)
             self.records.append(record)
 
+        next_id = self._get_next_id()
+
         if "next_id" in data:
             self.next_id = self._validate_next_id(data["next_id"])
+
+            if self.next_id < next_id:
+                raise ValidationError("Некорректное значение next_id в JSON файле")
         else:
-            self.next_id = self._get_next_id()
+            self.next_id = next_id
 
     def _validate_next_id(self, next_id):
         if not isinstance(next_id, int):
@@ -100,33 +113,13 @@ class JsonBookTable(BookTable):
         return next_id
 
 
-class CsvBookTable(BookTable):
+class CsvBookTable(FileBookTable):
     def __init__(self, file_path):
-        super().__init__()
-        self.file_path = file_path
-        self.columns = ["id", "title", "author", "year"]
+        super().__init__(file_path)
         self.load()
 
-    def add(self, title, author, year):
-        book = super().add(title, author, year)
-        self.save()
-        return book
-
-    def update(self, record_id, title=None, author=None, year=None):
-        book = super().update(record_id, title, author, year)
-        self.save()
-        return book
-
-    def delete(self, record_id):
-        book = super().delete(record_id)
-        self.save()
-        return book
-
     def save(self):
-        folder = os.path.dirname(self.file_path)
-
-        if folder != "":
-            os.makedirs(folder, exist_ok=True)
+        self._create_folder()
 
         try:
             with open(self.file_path, "w", encoding="utf-8", newline="") as file:
